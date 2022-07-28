@@ -24,8 +24,7 @@
         transition: 0.3s transform;
         img {
             width: 200px;
-            height: 200px;
-            object-fit: cover;
+            height: 200px;            
             transform: translate(-15px, -15px);
         }
         &_selected {
@@ -40,4 +39,10 @@
         text-transform: uppercase;
         color: #fff;
     }
+}
+.cover {
+    object-fit: cover;
+}
+.contain {
+    object-fit: contain;
 }
