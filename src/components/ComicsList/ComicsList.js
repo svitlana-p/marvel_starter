@@ -8,13 +8,28 @@ import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
 import "./comicsList.scss";
 
+const setContent = (process, Component, newComicsLoading) => {
+  switch(process) {
+    case 'waiting' :
+      return <Spinner />;
+    case 'loading' :
+      return newComicsLoading ? <Component /> : <Spinner />;
+    case 'confirmed' :
+      return  <Component />;
+    case 'error':
+      return <ErrorMessage />;
+    default :
+      throw new Error('Unexpected error');
+  }
+};
+
 const ComicsList = () => {
   const [comics, setComics] = useState([]);
   const [newComicsLoading, setNewComicsLoading] = useState(false);
   const [offset, setOffset] = useState(0);
   const [comicsEnded, setComicsEnded] = useState(false);
 
-  const { loading, error, getAllComics } = useMarvelService();
+  const { getAllComics, process, setProcess } = useMarvelService();
 
   useEffect(() => {
     onRequest(offset, true);
@@ -22,7 +37,9 @@ const ComicsList = () => {
 
   const onRequest = (offset, initial) => {
     initial ? setNewComicsLoading(false) : setNewComicsLoading(true);
-    getAllComics(offset).then(onComicsLoaded);
+    getAllComics(offset)
+      .then(onComicsLoaded)
+      .then(() => setProcess('confirmed'));
   };
 
   const onComicsLoaded = (newComics) => {
@@ -39,7 +56,7 @@ const ComicsList = () => {
 
   function renderComics(arr) {
     const items = arr.map((item) => {
-        const price = item.price === 0 ? 'NOT AVAILABLE' : item.price + '$';
+  
       return (
         <li 
         key={item.id}
@@ -51,7 +68,7 @@ const ComicsList = () => {
               className="comics__item-img"
             />
             <div className="comics__item-name">{item.title}</div>
-            <div className="comics__item-price">{price}</div>
+            <div className="comics__item-price">{item.price}</div>
           </Link>
         </li>
       );
@@ -59,15 +76,10 @@ const ComicsList = () => {
     return <ul className="comics__grid">{items}</ul>;
   }
 
-  const items = renderComics(comics);
-  const errorMessage = error ? <ErrorMessage /> : null;
-  const spinner = loading && !newComicsLoading ? <Spinner /> : null;
 
   return (
     <div className="comics__list">
-      {errorMessage}
-      {spinner}
-      {items}
+     {setContent(process, ()=>renderComics(comics), newComicsLoading)}
       <button
         className="button button__main button__long"
         disabled={newComicsLoading}
